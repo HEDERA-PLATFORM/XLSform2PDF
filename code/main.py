@@ -89,23 +89,32 @@ def get_color(v):
     
 ###############################################################################
 #filepath = "./input/"
-filepath = "/Users/caiazzo/HEDERA/NextCloud/IMPACT-R_Project/Activities/Data_Collection/Parallel Projects/SVF/"        
+filepath = "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/"        
     
 #outputTexFile = "./output/survey.tex"
-outputTexFile = filepath + "XLSFormExplore/svf.tex" 
-survey_name = filepath + "Survey/svf_study_2021.xlsx"
-figdir = "/Users/caiazzo/HEDERA/NextCloud/IMPACT-R_Project/Activities/Data_Collection/Parallel Projects/SVF/XLSFormExplore/figures/"
+outputTexFile = "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/output/zni/zni.tex" 
+survey_name = "/Users/caiazzo/HEDERA/NextCloud/IMPACT-R_Project/Activities/Data_Collection/Parallel Projects/ZNI/Surveys/zni_form.xlsx"
+figdir = None 
 # if True: use special fonts (! must be installed locally !)
 #fontFamily = "Josefin Sans"
 fontFamily = "Josefin Sans"
 # submissions_name = None => no data file attached
-submissions_name = filepath + "XLSFormExplore/svf.xlsx"
-
-
-# specify the groups that will be separated as sections
-section_groups = ['identification','household','electricity','cooking','jmp_wash','fies','dietary_score']
-
+submissions_name = None #filepath + "XLSFormExplore/svf.xlsx"
 logo = "HEDERA.png"
+lang= "es"
+# specify the groups that will be separated as sections
+#section_groups = ['identification','household','electricity','cooking','jmp_wash','fies','dietary_score']
+section_groups = ['datos_generales','beneficiario','mtf','equipos','instalacion']
+GITHUB_URL = "https://github.com/HEDERA-PLATFORM/XLSform2PDF"
+###############################################################################
+
+
+
+
+
+
+
+
 ### TODO: can we also add - analogously - subsection_groups? 
 # attention: it might get complicated with names of groups
 
@@ -129,6 +138,10 @@ if not fontFamily == None:
 survey = pd.read_excel(survey_name, sheet_name = "survey")
 choices = pd.read_excel(survey_name, sheet_name = "choices")
 settings = pd.read_excel(survey_name, sheet_name = "settings")
+s_version = settings['version'].values[0]
+s_name = settings['name'].values[0]
+s_title = settings['form_title'].values[0]
+
 if not submissions_name==None:
     submissions = pd.read_excel(submissions_name, sheet_name = 'SheetJS')
     last_date_value = submissions['Submitted on'][0][:10]
@@ -236,8 +249,9 @@ fnew.write('{\\small\n')
 fnew.write('\\begin{flushleft}\n')
 fnew.write('HEDERA XLSForm$\\_$Explore v1.0 (May 2021) \\\\[0.2em]\n')
 fnew.write('XLSForm$\\_$Explore is an open source project to\n')
-fnew.write('automatically create a codebook from XLS Forms (view on \\href{https://github.com}{github})\\\\\n')
-fnew.write('Survey File: ' + survey_name.replace('_','$\\_$') + '\\\\\n')
+fnew.write('automatically create a codebook from XLS Forms (view on \\href{' + GITHUB_URL + '}{github})\\\\\n')
+fnew.write('Survey: ' + s_title.replace('_','$\\_$') + '--')
+fnew.write('ID: ' + s_name.replace('_','$\\_$') + ' -- version ' + str(s_version) +'\\\\\n')
 if not submissions_name == None:
     fnew.write('Data file: ' + submissions_name.replace('_','$\\_$') + ' (last update on: ' + last_date + ') \\\\\n')
 fnew.write('© Copyright \\href{https://hedera.online}{HEDERA Sustainable Solutions}\n')
@@ -263,7 +277,7 @@ surveyStart = False
 for index, row in survey.iterrows():
     
     variable_type = row['type']
-    variable_name = row['name'].rstrip()
+    variable_name = row['name'].rstrip() if not(variable_type)=="end group" else None
     
     
     
@@ -276,7 +290,7 @@ for index, row in survey.iterrows():
         if variable_name in section_groups:
             first_name = variable_name
             surveyStart = True
-            q = row[get_label("en")]
+            q = row[get_label(lang)]
             fnew.write('\\newpage')
             fnew.write('\\section{'+q + '}\n')
             
@@ -312,10 +326,10 @@ for index, row in survey.iterrows():
             else:
                 vtype = variable_type
             
-            q_label = get_question_text(row[get_label("en")])
+            q_label = get_question_text(row[get_label(lang)])
             fnew.write('\\paragraph{'+q_label.replace('*','') +'}\n')
-            if type(row[get_hint("en")]) == str:
-                h = get_question_text(row[get_hint("en")])
+            if type(row[get_hint(lang)]) == str:
+                h = get_question_text(row[get_hint(lang)])
                 fnew.write('\\ \\\ {\\small ' + h + '}\n')
     
             fnew.write('\\  \\\\')
@@ -336,7 +350,7 @@ for index, row in survey.iterrows():
         if variable_type.split()[0] == 'select_one' or variable_type.split()[0] == 'select_multiple':
             
             second_name = row['name']
-            choices_list = get_choices(choices, variable_type.split()[1])
+            choices_list = get_choices(choices, variable_type.split()[1],lang=lang)
 
             
             ## About the results in the submissions table:
@@ -392,7 +406,7 @@ for index, row in survey.iterrows():
 
             else:
 
-                fnew.write(' \\begin{tabular}{p{4cm}|p{4cm}}\n')
+                fnew.write(' \\begin{tabular}{p{4cm}|p{11cm}}\n')
                 fnew.write('Choice code & Label \\\\\n')
                 fnew.write('\\hline\n')
                 for k in range(0, len(choices_list['name'])):
