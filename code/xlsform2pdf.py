@@ -9,138 +9,56 @@ Created on Fri Apr 23 16:50:58 2021
 
 import pandas as pd
 import numpy as np
-import math
 from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
-
-# color scales from https://htmlcolorcodes.com/
-COLOR_SCALE_RED = ["#F5B7B1","#EC7063","#E74C3C","#B03A2E","#943126"]
-COLOR_SCALE_BLUE = ["#D4E6F1","#7FB3D5","#2980B9","#1F618D","#154360"]
-COLOR_SCALE_ORANGE = ["#FAE5D3","#EDBB99","#DC7633","#BA4A00","#873600"]
-
-def get_choices(choices,v_name,lang='en'):
-    df = choices.loc[choices['list_name'] == v_name]
-    return {
-        "name": df['name'].values.astype(str),
-        "label": df[get_label(lang)].values.astype(str)
-        }
-
-def get_label(lang):
-    # english
-    if lang=="en":
-        return 'label::English (en)'
-
-    elif lang=="fr":
-        return 'label::Français (fr)'
-    
-    elif lang=='es':
-        return 'label::Español (es)'
-    
-    else:
-        print("Warning: unknown language - using english")
-        return 'label::English (en)'
-
-
-def get_hint(lang):
-    # english
-    if lang == "en":
-        return 'hint::English (en)'
-
-    elif lang=="fr":
-        return 'hint::Français (fr)'
-    
-    elif lang=='es':
-        return 'hint::Español (es)'
-    
-    else:
-        print("Warning: unknown language - using english")
-        return 'hint::English (en)'
-    
-    
-def get_percent(n,l):
-    if l == 0:
-        return 0
-    else:
-        return round(n/l*100,1)
-    
-
-def get_question_text(l):
-    q = l
-    q = q.replace('{', '')
-    q = q.replace('\n', '')
-    q = q.replace('}', '')
-    q = q.replace('_', '\_')
-    q = q.replace('$', '')
-    return q
-
-def get_color(v):
-    if v<=20:
-        return "color0"
-    elif v<=40:
-        return "color1"
-    elif v<=60:
-        return "color2"
-    elif v <= 80:
-        return "color3"
-    else:
-        return "color4"
-        
-    
-###############################################################################
-#filepath = "./input/"
-filepath = "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/"        
-    
-#outputTexFile = "./output/survey.tex"
-outputTexFile = "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/output/fansoto/fansoto.tex" 
-survey_name = "/Users/caiazzo/HEDERA/NextCloud/IMPACT-R_Project/Activities/Data_Collection/Surveys/COMPLETE/FANSOTO/fansoto.xlsx"
-figdir = None 
-# if True: use special fonts (! must be installed locally !)
-#fontFamily = "Josefin Sans"
-fontFamily = "Josefin Sans"
-# submissions_name = None => no data file attached
-submissions_name = "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/output/fansoto/fansoto.csv" 
-date_key = "SubmissionDate"
-logo = "HEDERA.png"
-lang= "fr"
-# specify the groups that will be separated as sections
-section_groups = ['identification','household','electricity','cooking','jmp_wash','fies','dietary_score',
-                  'customer_satisfaction','interview_feedback']
-#section_groups = ['datos_generales','beneficiario','mtf','equipos','instalacion']
-GITHUB_URL = "https://github.com/HEDERA-PLATFORM/XLSform2PDF"
-###############################################################################
-
-
-
-
-
-#these lines are needed to add the Josefin Sans font
-#@attention: the font path might vary depending on the machine
 import matplotlib.font_manager as fm
-fontpath = '/Library/Fonts/JosefinSans-Regular.ttf'
+import json
+import sys
+
+from input_parameters import InputParameters
+from utils import (
+    get_choices,get_label,get_hint,get_percent,get_question_text,get_color
+    )
+       
+    
+# read input file (.json)    
+input_file = sys.argv[1]
+
+with open(input_file) as f:
+  input_dict = json.load(f)
+  
+io = InputParameters(input_dict)
+
+if io.verbose>0:
+    print(input_dict)
+
+if not io.fontFamily == None:
+    print(" -- creating latex with font family:", io.fontFamily, " : it should be already installed in order to compile")
+
+fontpath = io.fontpath
 fm.fontManager.addfont(fontpath)
 prop = fm.FontProperties(fname=fontpath)
 matplotlib.rcParams['font.family'] = prop.get_name()
 plt.rcParams['font.family'] = prop.get_name()
 plt.rcParams['font.size'] = 18
 
+
+
 ###############################################################################
 
-if not fontFamily == None:
-    print(" -- creating latex with font family:", fontFamily, " : it should be already installed in order to compile")
 
 # read survey
-survey = pd.read_excel(survey_name, sheet_name = "survey")
-choices = pd.read_excel(survey_name, sheet_name = "choices")
-settings = pd.read_excel(survey_name, sheet_name = "settings")
+survey = pd.read_excel(io.survey_name, sheet_name = "survey")
+choices = pd.read_excel(io.survey_name, sheet_name = "choices")
+settings = pd.read_excel(io.survey_name, sheet_name = "settings")
 s_version = settings['version'].values[0]
 s_name = settings['name'].values[0]
 s_title = settings['form_title'].values[0]
 
-if not submissions_name==None:
-    #submissions = pd.read_excel(submissions_name, sheet_name = 'SheetJS')
-    submissions = pd.read_csv(submissions_name)
-    last_date_value = submissions[date_key][0][:10]
+if not io.submissions_name==None:
+    submissions = pd.read_csv(io.submissions_name)
+    last_date_value = submissions[io.date_key][0][:10]
     date_object = datetime.strptime(last_date_value, "%Y-%m-%d")
     last_date = date_object.strftime("%d %B, %Y")
     
@@ -152,18 +70,17 @@ if not submissions_name==None:
 
 
 
-print(" *** writing survey to file " + outputTexFile + " *** ")
-fnew = open(outputTexFile,'w')
+print(" *** writing survey to file " + io.outputTexFile + " *** ")
+fnew = open(io.outputTexFile,'w')
 
 ### TODO: check if we can remove some lines
 ## write header
 fnew.write("\documentclass[11.5pt, a4paper]{scrartcl}\n")
 fnew.write("\\usepackage[english]{babel}\n")
 
-if not fontFamily == None:
-    #fnew.write("\\usepackage{josefin}\n")
-    #fnew.write("\\usepackage[sfdefault]{josefin}\n")
+if not io.fontFamily == None:
     fnew.write("\\usepackage{fontspec}\n")
+    
 fnew.write('\\usepackage[top=35pt, left=2.25cm, right=2.2cm]{geometry}\n')
 fnew.write('\\usepackage{setspace}\n')
 fnew.write('\\usepackage{fancyhdr}\n')
@@ -198,8 +115,8 @@ fnew.write('\\fancyfoot[R] {\Large \\thepage}\n')
 fnew.write('}\n')
 
 
-for c in COLOR_SCALE_ORANGE:
-    fnew.write('\\definecolor{color'+str(COLOR_SCALE_ORANGE.index(c)) + '}{HTML}{' + c[1:] + '}\n')
+for c in io.COLOR_SCALE_ORANGE:
+    fnew.write('\\definecolor{color'+str(io.COLOR_SCALE_ORANGE.index(c)) + '}{HTML}{' + c[1:] + '}\n')
 
 fnew.write('\\definecolor{mygreen1}{HTML}{6CAE33}\n')
 fnew.write('\\definecolor{mygray}{HTML}{EAECEE}\n')
@@ -217,23 +134,20 @@ fnew.write('\\definecolor{hederablue}{HTML}{283747}\n')
 fnew.write('\\backgroundsetup{contents={%\n')
 fnew.write('\\begin{tikzpicture}\n')
 fnew.write('\\shade[left color=hederablue, middle color = hederablue, right color = hederablue] (0,1.3) rectangle (23,0);\n')
-if not logo == None:
+if not io.logo == None:
     fnew.write('\\node (mytext) at (4.2,0.53) { {\\textcolor{white}{\\textsf{POWERED BY}}}};\n');
-    fnew.write('\\node (myfirstpic) at (6,0.33) {\\includegraphics[height=.7cm]{' + logo + '}};\n');
+    fnew.write('\\node (myfirstpic) at (6,0.33) {\\includegraphics[height=.7cm]{' + io.logo + '}};\n');
 
 fnew.write('\\end{tikzpicture}}\n')
 fnew.write('}\n')
 
 
-if not fontFamily==None:
-    fnew.write('\\setmainfont{' + fontFamily + '}\n')
+if not io.fontFamily==None:
+    fnew.write('\\setmainfont{' + io.fontFamily + '}\n')
 
 fnew.write('\\setcounter{secnumdepth}{1}\n')
 fnew.write('\\parindent 0pt\n')
 
-# TABLE OF CONTENTS (use "2" for printing in two columns, for long surveys)
-#fnew.write('\\begin{multicols}{1}\n')
-#fnew.write('{\\tiny\n')
 fnew.write('\\tableofcontents\n')
 
 fnew.write('\n')
@@ -245,23 +159,17 @@ fnew.write('{\\small\n')
 fnew.write('\\begin{flushleft}\n')
 fnew.write('HEDERA XLSForm$\\_$Explore v1.0 (May 2021) \\\\[0.2em]\n')
 fnew.write('XLSForm$\\_$Explore is an open source project to\n')
-fnew.write('automatically create a codebook from XLS Forms (view on \\href{' + GITHUB_URL + '}{github})\\\\\n')
+fnew.write('automatically create a codebook from XLS Forms (view on \\href{' + io.GITHUB_URL + '}{github})\\\\\n')
 fnew.write('Survey: ' + s_title.replace('_','$\\_$') + '--')
 fnew.write('ID: ' + s_name.replace('_','$\\_$') + ' -- version ' + str(s_version) +'\\\\\n')
-if not submissions_name == None:
-    fnew.write('Data file: ' + submissions_name.replace('_','$\\_$') + ' (last update on: ' + last_date + ') \\\\\n')
+if not io.submissions_name == None:
+    fnew.write('Data file: ' + io.submissions_name.replace('_','$\\_$') + ' (last update on: ' + last_date + ') \\\\\n')
 fnew.write('© Copyright \\href{https://hedera.online}{HEDERA Sustainable Solutions}\n')
 fnew.write('\\end{flushleft}\n')
 fnew.write('}')
 fnew.write('\\end{minipage}\n')
 
-#if not submissions_name==None:
-#    fnew.write('\n')
-#    fnew.write('\\ For each question, this file includes some information about the result of this survey which had its last submissions on the ' + date + '. \n')
 
-
-#fnew.write('}\n')
-#fnew.write('\\end{multicols}\n')
 fnew.write('\\newpage\n')
 
 
@@ -283,17 +191,17 @@ for index, row in survey.iterrows():
         required = False
     
     if variable_type.split()[0] == 'begin':
-        if variable_name in section_groups:
+        if variable_name in io.section_groups:
             first_name = variable_name
             surveyStart = True
-            q = row[get_label(lang)]
+            q = row[get_label(io.lang)]
             fnew.write('\\newpage')
             fnew.write('\\section{'+q + '}\n')
             
-    plt.rcParams["font.family"] = fontFamily
+    plt.rcParams["font.family"] = io.fontFamily
     if surveyStart:
         
-        if not figdir == None:
+        if not io.figdir == None:
             
             # experimental: draw and include graphs
             ###################################################################
@@ -305,7 +213,7 @@ for index, row in survey.iterrows():
                     plt.hist(submissions[row['name']])
                     plt.xlabel(row['name'])
                     plt.tight_layout()
-                    plt.savefig(figdir + row['name'] + ".png")
+                    plt.savefig(io.figdir + row['name'] + ".png")
             
             
             ###################################################################
@@ -315,7 +223,7 @@ for index, row in survey.iterrows():
                 counts = submissions[row['name']].value_counts().to_dict()
                 plt.pie([float(v) for v in counts.values()], labels=[k for k in counts],autopct=None)
                 plt.tight_layout()
-                plt.savefig(figdir + row['name'] + ".png")
+                plt.savefig(io.figdir + row['name'] + ".png")
                 
             
         if (variable_type.split()[0] == 'select_one' or 
@@ -330,10 +238,10 @@ for index, row in survey.iterrows():
                 vtype = variable_type
             
                 
-            q_label = get_question_text(row[get_label(lang)])
+            q_label = get_question_text(row[get_label(io.lang)])
             fnew.write('\\paragraph{'+q_label.replace('*','') +'}\n')
-            if type(row[get_hint(lang)]) == str:
-                h = get_question_text(row[get_hint(lang)])
+            if type(row[get_hint(io.lang)]) == str:
+                h = get_question_text(row[get_hint(io.lang)])
                 fnew.write('\\ \\\ {\\small ' + h + '}\n')
     
             fnew.write('\\  \\\\')
@@ -356,16 +264,13 @@ for index, row in survey.iterrows():
         #######################################################################
             
             second_name = row['name']
-            choices_list = get_choices(choices, variable_type.split()[1],lang=lang)
+            choices_list = get_choices(choices, variable_type.split()[1],lang=io.lang)
 
             
             ## About the results in the submissions table:
-            if not submissions_name == None:
+            if not io.submissions_name == None:
                 
                 col = row['name'].rstrip()
-                
-                
-                
                 total = len(submissions) - submissions[col].isna().sum()
                 if 'nan' in submissions[col].value_counts():
                     total = total - submissions[col].value_counts()['nan']
@@ -434,7 +339,7 @@ for index, row in survey.iterrows():
         #######################################################################
         if (variable_type == 'range'):
         #######################################################################
-            if not submissions_name == None:
+            if not io.submissions_name == None:
                 # write the range results
                 col = row['name'].rstrip()
                 total = len(submissions) - submissions[col].isna().sum()
