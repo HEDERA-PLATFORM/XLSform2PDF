@@ -59,7 +59,7 @@ s_title = settings['form_title'].values[0]
 if not io.submissions_name==None:
     submissions = pd.read_csv(io.submissions_name)
     last_date_value = submissions[io.date_key][0][:10]
-    date_object = datetime.strptime(last_date_value, "%Y-%m-%d")
+    date_object = datetime.strptime(last_date_value, io.date_format)
     last_date = date_object.strftime("%d %B, %Y")
     
     new_names = []
@@ -106,7 +106,7 @@ fnew.write('\\setlength{\\abovetopsep}{4pt}\n')
 
 
 fnew.write('\\fancyhf{}\n')
-fnew.write('\\fancyhead[R]{\\small ' + settings['form_title'].values[0] + '}\n')
+fnew.write('\\fancyhead[R]{\\small ' + settings['form_title'].values[0].replace('_',' ') + '}\n')
 fnew.write('\\fancyfoot[R] { {\\textcolor{white}\\thepage}}\n')
 
 fnew.write('\\fancypagestyle{plain}{%\n')
@@ -160,7 +160,7 @@ fnew.write('\\begin{flushleft}\n')
 fnew.write('HEDERA XLSForm$\\_$Explore v1.0 (May 2021) \\\\[0.2em]\n')
 fnew.write('XLSForm$\\_$Explore is an open source project to\n')
 fnew.write('automatically create a codebook from XLS Forms (view on \\href{' + io.GITHUB_URL + '}{github})\\\\\n')
-fnew.write('Survey: ' + s_title.replace('_','$\\_$') + '--')
+fnew.write('Survey: ' + s_title.replace('_','$\\_$') + '\\\\\n')
 fnew.write('ID: ' + s_name.replace('_','$\\_$') + ' -- version ' + str(s_version) +'\\\\\n')
 if not io.submissions_name == None:
     fnew.write('Data file: ' + io.submissions_name.replace('_','$\\_$') + ' (last update on: ' + last_date + ') \\\\\n')
@@ -170,7 +170,7 @@ fnew.write('}')
 fnew.write('\\end{minipage}\n')
 
 
-fnew.write('\\newpage\n')
+#fnew.write('\\newpage\n')
 
 
 # select which variables / questions are we going to write

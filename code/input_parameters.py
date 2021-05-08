@@ -31,6 +31,7 @@ class InputParameters:
         # optional data file
         self.submissions_name = input_dict['submissions_name'] if 'submissions_name' in input_dict.keys() else None
         self.date_key = input_dict['date_key'] if 'date_key' in input_dict.keys() else None
+        self.date_format = input_dict['date_format'] if 'date_format' in input_dict.keys() else "%Y-%m-%d"
         self.figdir = input_dict['figdir'] if 'figdir' in input_dict.keys() else None
         
         # do not change
