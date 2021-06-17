@@ -4,7 +4,7 @@
 Created on Tue May  4 23:29:11 2021
 
 @author: caiazzo
-"""
+""" 
 
 def get_choices(choices,v_name,lang='en'):
     df = choices.loc[choices['list_name'] == v_name]
@@ -46,6 +46,7 @@ def get_percent(n,l):
     
 
 def get_question_text(l):
+    
     q = l
     q = q.replace('{', '')
     q = q.replace('\n', '')
