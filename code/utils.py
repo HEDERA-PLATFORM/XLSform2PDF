@@ -37,13 +37,13 @@ def get_hint(lang):
     else:
         print("Warning: unknown language - using english")
         return 'hint::English (en)'
-    
-    
+
+
 def get_percent(n,l):
     if l==0: return 0
     else:
         return round(n/l*100,1) 
-    
+
 
 def get_question_text(l):
     

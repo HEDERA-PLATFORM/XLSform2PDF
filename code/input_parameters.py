@@ -15,6 +15,7 @@ class InputParameters:
         # REQUIRED
         self.filepath = input_dict['filepath'] 
         self.outputTexFile = input_dict['outputTexFile']
+        self.OutputPlotsFolder = input_dict['OutputPlotsFolder']
         # survey
         self.survey_name = input_dict['survey_name']
         self.section_groups = input_dict['section_groups']

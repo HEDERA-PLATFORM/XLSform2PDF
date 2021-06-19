@@ -14,6 +14,8 @@ fnew.write('\\usepackage[utf8]{inputenc}\n')
 fnew.write('\\usepackage[spanish]{babel}\n')
 fnew.write('\\usepackage[T1]{fontenc}\n')
 fnew.write('\\usepackage{graphicx}\n')
+fnew.write('\\usepackage{float}\n')
+
 fnew.write('\\usepackage[left=.75cm,right=.75cm,top=.5cm,bottom=2.5cm]{geometry}\n')
 fnew.write('\\usepackage{multicol}\n')
 fnew.write('\\usepackage[table]{xcolor}\n')
@@ -29,7 +31,7 @@ fnew.write('\\definecolor{myblue}{HTML}{1F618D}\n')
 
 
 fnew.write('\\begin{document}\n')
-  
+
 fnew.write('\\begin{center}\n')
 fnew.write("\\textbf{FORMATO DE VERIFICACI\\'ON DE INSTALACI\\'ON \\ SOLUCI\\'ON FOTOVOLTAICA INDIVIDUAL}\n")
 fnew.write('\\end{center}\n')

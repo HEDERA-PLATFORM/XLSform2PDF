@@ -1,0 +1,14 @@
+{
+    "verbose": 0,
+    "filepath" : "/Users/chaix/Hedera/GIT/XLSform2PDF ",
+    "OutputPlotsFolder" : "/Users/chaix/Hedera/GIT/XLSform2PDF/output/svf/plots",
+    "outputTexFile" : "/Users/chaix/Hedera/GIT/XLSform2PDF/output/svf/svf.tex",
+    "survey_name" : "/Users/chaix/Nextcloud/IMPACT-R Project/Activities/Data_Collection/Parallel Projects/SVF/Survey/svf_study_2021.xlsx",
+    "fontFamily" : "Josefin Sans",
+    "fontpath" : "/Users/chaix/Hedera/GIT/XLSform2PDF/code/JosefinSans-Regular.ttf",
+    "submissions_name" : "/Users/chaix/Hedera/GIT/XLSform2PDF/output/svf/svf_study_2021_cleaned.csv",
+    "date_key" : "SubmissionDate",
+    "logo" : "/Users/chaix/Hedera/GIT/XLSform2PDF/code/assets/HEDERA.png",
+    "lang" : "en",
+    "section_groups" : ["identification","demographic","willingness_to_pay","electricity","cooking","jmp_wash","fies","dietary_score"]
+}

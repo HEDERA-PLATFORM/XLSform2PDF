@@ -10,24 +10,32 @@ Created on Fri Apr 23 16:50:58 2021
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from collections import Counter
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import json
 import sys
+import nltk
+import re
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+from nltk.tokenize import word_tokenize
+
+
 
 from input_parameters import InputParameters
 from utils import (
-    get_choices,get_label,get_hint,get_percent,get_question_text,get_color
+    get_choices, get_label, get_hint, get_percent, get_question_text, get_color
     )
-       
-    
+
+
 # read input file (.json)    
 input_file = sys.argv[1]
 
 with open(input_file) as f:
-  input_dict = json.load(f)
-  
+    input_dict = json.load(f)
+
 io = InputParameters(input_dict)
 
 if io.verbose>0:
@@ -41,11 +49,11 @@ fm.fontManager.addfont(fontpath)
 prop = fm.FontProperties(fname=fontpath)
 matplotlib.rcParams['font.family'] = prop.get_name()
 plt.rcParams['font.family'] = prop.get_name()
-plt.rcParams['font.size'] = 18
+plt.rcParams['font.size'] = 18       
 
 
 
-###############################################################################
+# ##############################################################################
 
 
 # read survey
@@ -55,6 +63,8 @@ settings = pd.read_excel(io.survey_name, sheet_name = "settings")
 s_version = settings['version'].values[0]
 s_name = settings['name'].values[0]
 s_title = settings['form_title'].values[0]
+
+
 
 if not io.submissions_name==None:
     submissions = pd.read_csv(io.submissions_name)
@@ -80,13 +90,14 @@ fnew.write("\\usepackage[english]{babel}\n")
 
 if not io.fontFamily == None:
     fnew.write("\\usepackage{fontspec}\n")
-    
+
 fnew.write('\\usepackage[top=35pt, left=2.25cm, right=2.2cm]{geometry}\n')
 fnew.write('\\usepackage{setspace}\n')
 fnew.write('\\usepackage{fancyhdr}\n')
 fnew.write('\\pagestyle{fancy}\n')
 fnew.write('\\fancyhf{moresize}\n')
 fnew.write('\\usepackage{hyperref}\n')
+fnew.write('\\usepackage{float}\n')
 
 fnew.write('\\usepackage{multicol}\n')
 fnew.write('\\usepackage[dvipsnames,table]{xcolor}\n')
@@ -170,7 +181,7 @@ fnew.write('}')
 fnew.write('\\end{minipage}\n')
 
 
-#fnew.write('\\newpage\n')
+# fnew.write('\\newpage\n')
 
 
 # select which variables / questions are we going to write
@@ -205,7 +216,7 @@ for index, row in survey.iterrows():
             
             # experimental: draw and include graphs
             ###################################################################
-            if variable_type=="integer":
+            if variable_type == "integer":
             ###################################################################
                 if len(submissions) > submissions[row['name']].isna().sum():
                     
@@ -335,6 +346,121 @@ for index, row in survey.iterrows():
 
                 fnew.write('\\end{tabular}\n')
 
+        #######################################################################
+        if variable_type == "integer":
+        #######################################################################
+            col = row['name'].rstrip()
+            data = submissions[[col]].dropna()
+            data = data[data[col] != 888]
+            data = data[data[col] != 8888]
+            nb_answers = len(data)
+            min = data[col].min()
+            max = data[col].max()
+            mean = data[col].mean()
+            var = data[col].var()
+
+            fnew.write('\\\\Total number of answers: ' + str(nb_answers) + ' (' +
+                       str(get_percent(nb_answers, len(submissions))) + '\\%)\n')
+            fnew.write('\\\\[0.2em]')
+
+            if nb_answers > 0:
+
+                fnew.write(' \\begin{tabular}{p{4cm}|p{8cm}}\n')
+                fnew.write('Minimum value &')
+                fnew.write('{}'.format(min))
+                fnew.write(' \\\\\n')
+                fnew.write('\\hline\n')
+
+                fnew.write('\\cellcolor{mygray} Maximum value & \\cellcolor{mygray}')
+                fnew.write('{}'.format(max))
+                fnew.write(' \\\\\n')
+                fnew.write('\\hline\n')
+
+                fnew.write('Variance &')
+                fnew.write('{}'.format(var))
+                fnew.write(' \\\\\n')
+                fnew.write('\\hline\n')
+
+                fnew.write('\\cellcolor{mygray} Mean value & \\cellcolor{mygray}')
+                fnew.write('{}'.format(mean))
+                fnew.write(' \\\\\n')
+                fnew.write('\\hline\n')
+
+                fnew.write('\\end{tabular}\n')
+
+
+
+                fig = plt.figure()
+                title = 'Boxplot of {}'.format(col)
+                ax = submissions[col].plot.box(title = title)
+                ax.plot()
+
+                file_path = io.OutputPlotsFolder + '/graph_' + '{}'.format(col) + '.png'
+
+                fig.savefig(file_path)
+                fig = plt.close()
+
+                fnew.write('\\begin{figure}[H]\n')
+                fnew.write('\\centering\n')
+                fnew.write('\\includegraphics[scale=0.5]{')
+                fnew.write('{}'.format(file_path))
+                fnew.write('}\n')
+                fnew.write('\\end{figure}\n')
+
+        #######################################################################
+        if variable_type == "text":
+            col = row['name'].rstrip()
+            nb_answers = len(submissions[col].dropna())
+            s = submissions[col].dropna()
+
+            text = []
+            for index, value in s.items():
+                #for word in value:
+                 text.append(value.lower())
+            strings = ' '.join(text)
+            strings = re.sub(r'[^\w\s]', '', strings)
+
+            text_tokens = word_tokenize(strings)
+            tokens_without_sw = [word for word in text_tokens if not word in stopwords.words()]
+            counter = Counter(tokens_without_sw)
+            most_occur = counter.most_common(8)
+            #print('most_occur', most_occur)
+
+            fnew.write('\\\\Total number of answers: ' + str(total) + ' (' +
+                       str(get_percent(total, len(submissions))) + '\\%)\n')
+            fnew.write('\\\\[0.2em]')
+
+            if not most_occur == []:
+                fnew.write('\\begin{table}[H]\n')
+                fnew.write(' \\begin{tabular}{p{4cm}|p{8cm}}\n')
+                fnew.write('Word & Number of occurrences ')
+                fnew.write(' \\\\\n')
+                fnew.write('\\hline\n')
+                for i in range(len(most_occur)):
+                    if i%2 == 1:
+                        fnew.write('{}'.format(most_occur[i][0]))
+                        fnew.write('&')
+                        fnew.write('{}'.format(most_occur[i][1]))
+                        fnew.write('\\\\\n')
+                        fnew.write('\\hline\n')
+                    else:
+                        fnew.write('\\cellcolor{mygray}')
+                        fnew.write('{}'.format(most_occur[i][0]))
+                        fnew.write('&')
+                        fnew.write('\\cellcolor{mygray}')
+                        fnew.write('{}'.format(most_occur[i][1]))
+                        fnew.write('\\\\\n')
+                        fnew.write('\\hline\n')
+
+
+                fnew.write('\\end{tabular}\n')
+                fnew.write('\\caption{\\label{tab:table-name} Most used words for this answer}\n')
+                fnew.write('\\end{table}\n')
+
+
+
+
+
 
         #######################################################################
         if (variable_type == 'range'):
@@ -369,13 +495,12 @@ for index, row in survey.iterrows():
                             fnew.write( c_name + ' &  \\cellcolor{' + cell_color + '}' + str(f) + ' (' + str(value) + '\%)\\\\\n')
     
                     fnew.write('\\end{tabular}\n')
-                
-            
-            
+
+
+
 
     
-    
-    
+
 
 
 fnew.write('\\end{document}')
