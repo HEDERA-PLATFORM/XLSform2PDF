@@ -13,9 +13,9 @@ class InputParameters:
         self.verbose = input_dict['verbose'] if 'verbose' in input_dict.keys() else 0
         
         # REQUIRED
-        self.filepath = input_dict['filepath'] 
-        self.outputTexFile = input_dict['outputTexFile']
-        self.OutputPlotsFolder = input_dict['OutputPlotsFolder']
+        
+        self.outputDirectory = input_dict['outputDirectory']
+        self.OutputPlotsFolder = input_dict['OutputPlotsFolder'] if 'OutputPlotsFolder' in input_dict.keys() else None
         # survey
         self.survey_name = input_dict['survey_name']
         self.section_groups = input_dict['section_groups']
@@ -24,6 +24,7 @@ class InputParameters:
         # OPTIONAL
         # layout
         self.logo = input_dict['logo'] if 'logo' in input_dict.keys() else None
+        self.fontFile = input_dict['fontFile'] if 'fontFile' in input_dict.keys() else None
         self.fontFamily = input_dict['fontFamily'] if 'fontFamily' in input_dict.keys() else None
         self.fontpath = input_dict['fontpath'] if 'fontpath' in input_dict.keys() else None
         #fontpath = '/Library/Fonts/JosefinSans-Regular.ttf'
@@ -34,6 +35,7 @@ class InputParameters:
         self.date_key = input_dict['date_key'] if 'date_key' in input_dict.keys() else None
         self.date_format = input_dict['date_format'] if 'date_format' in input_dict.keys() else "%Y-%m-%d"
         self.figdir = input_dict['figdir'] if 'figdir' in input_dict.keys() else None
+        self.textAnalysis = input_dict['textAnalysis'] if 'textAnalysis' in input_dict.keys() else False
         
         # do not change
         self.GITHUB_URL = "https://github.com/HEDERA-PLATFORM/XLSform2PDF"

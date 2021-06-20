@@ -53,6 +53,8 @@ def get_question_text(l):
     q = q.replace('}', '')
     q = q.replace('_', '\_')
     q = q.replace('$', '')
+
+    q = q.replace('%', '\\%')
     return q
 
 def get_color(v):
