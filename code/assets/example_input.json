@@ -1,0 +1,13 @@
+{
+    "verbose": 0,
+    
+    "outputDirectory" : "/Users/caiazzo/HEDERA/CODES/XLSform2PDF/demo/fansoto/",
+    "survey_name" : "/Users/caiazzo/HEDERA/NextCloud/IMPACT-R_Project/Activities/Data_Collection/Surveys/COMPLETE/FANSOTO/fansoto.xlsx",
+    "fontFile" : "JosefinSans-Regular.ttf",
+    "submissions_name" : "/Users/caiazzo/HEDERA/CODES/impact-r-dashboard/data/fansoto/fansoto.csv",
+    "date_key" : "SubmissionDate",
+    "logo" : "HEDERA.png",
+    "lang" : "fr",
+    "textAnalysis": false,
+    "section_groups" : ["identification","household","electricity","cooking","jmp_wash","fies","dietary_score","customer_satisfaction","interview_feedback"]
+}
